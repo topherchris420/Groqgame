@@ -105,7 +105,7 @@ def draw_grid(snake, food, groq_chip, power_up):
 # Game loop
 def game_loop():
     state = st.session_state.game_state
-    if state["paused"]:
+    if state["paused"] or state['game_over']:
         return
 
     if state["pending_direction"]:  # Apply the pending direction change
@@ -124,25 +124,33 @@ def game_loop():
         state["snake"], state["food"], state["groq_chip"], state["power_up"]
     )
 
-    
-    if collision == 'WALL' or collision == 'SELF':
-        state['game_over'] = True
-    elif collision == 'FOOD':
-        state['score'] += 1
-        state['snake'].append(state['snake'][-1])  # Increase snake length
-        state['food'] = generate_food(state['snake'], state['groq_chip'], state['power_up'])
-        if state['score'] % 5 == 0:
-            state['level'] += 1
-            state['speed'] = max(0.05, state['speed'] - 0.01)
-    elif collision == 'GROQ':
-        state['score'] += 5
-        state['groq_chip'] = generate_groq_chip(state['snake'], state['food'], state['power_up'])
-    elif collision == 'POWER_UP':
-        state['score'] += 2
-        state['speed'] = max(0.05, state['speed'] - 0.05)
-        state['power_up'] = None
-    
+    if collision == "WALL" or collision == "SELF":
+        state["game_over"] = True
+    elif collision == "FOOD":
+        state["score"] += 1
+        state["snake"].append(state["snake"][-1])  # Increase snake length
+        state["food"] = generate_food(
+            state["snake"], state["groq_chip"], state["power_up"]
+        )
+        if state["score"] % 5 == 0:
+            state["level"] += 1
+            state["speed"] = max(0.05, state["speed"] - 0.01)
+    elif collision == "GROQ":
+        state["score"] += 5
+        state["groq_chip"] = generate_groq_chip(
+            state["snake"], state["food"], state["power_up"]
+        )
+    elif collision == "POWER_UP":
+        state["score"] += 2
+        state["speed"] = max(0.05, state["speed"] - 0.05)
+        state["power_up"] = None
+
     st.session_state.game_state = state
+
+ # Schedule a rerun after a short delay
+    time.sleep(st.session_state.game_state["speed"])
+    st.experimental_rerun()
+
 
 # Streamlit UI
 st.title("Byte Vipers")
@@ -166,31 +174,29 @@ level_container.write(f"Level: {state['level']}")
 
 
 # Game controls
-if st.button('Start/Resume'):
-    st.session_state.game_state['paused'] = False
-    while not st.session_state.game_state['game_over']:
-        game_loop()
-        time.sleep(st.session_state.game_state['speed'])
-        st.experimental_rerun()
+if st.button("Start/Resume"):
+    st.session_state.game_state["paused"] = False
+    game_loop() # Start the game loop
 
-if st.button('Pause'):
-    st.session_state.game_state['paused'] = True
+if st.button("Pause"):
+    st.session_state.game_state["paused"] = True
 
-if st.session_state.game_state['game_over']:
+if st.session_state.game_state["game_over"]:
     st.write("Game Over!")
     st.write(f"Final Score: {st.session_state.game_state['score']}")
-    if st.button('Restart'):
+    if st.button("Restart"):
         st.session_state.game_state = {
-            'score': 0,
-            'level': 1,
-            'speed': INITIAL_SPEED,
-            'snake': [(5, 5)],
-            'direction': 'RIGHT',
-            'food': (10, 10),
-            'groq_chip': (15, 15),
-            'power_up': None,
-            'game_over': False,
-            'paused': False,
+            "score": 0,
+            "level": 1,
+            "speed": INITIAL_SPEED,
+            "snake": [(5, 5)],
+            "direction": "RIGHT",
+            "food": (10, 10),
+            "groq_chip": (15, 15),
+            "power_up": None,
+            "game_over": False,
+            "paused": False,
+            "pending_direction": None,
         }
         st.experimental_rerun()
 
