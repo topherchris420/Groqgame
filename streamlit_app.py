@@ -13,8 +13,9 @@ POWER_UP_CHAR = '<div style="color: green;">■</div>'
 
 # Streamlit components
 st.set_page_config(
-    page_title="Byte Vypers by Vers3Dynamics", page_icon=":snake:", layout="centered"
+    page_title="Vers3Dynamics", page_icon=":snake:", layout="centered"
 )
+st.markdown(f'<a href="https://visualverse.streamlit.app/" style="text-decoration:none; color: #0e76a8;"><h2>Leonardo da Vinci, Reimagined by Vers3Dynamics</h2></a>', unsafe_allow_html=True)
 
 # Game state
 if "game_state" not in st.session_state:
