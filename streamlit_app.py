@@ -182,3 +182,9 @@ def handle_key(key):
         st.session_state.game_state['paused'] = not st.session_state.game_state['paused']
 
 st.text_input('Press arrow keys or P to control the game', on_change=handle_key, key='key_input')
+
+# Run the game loop
+while True:
+    game_loop()
+    time.sleep(st.session_state.game_state['speed'])
+    st.experimental_rerun()
