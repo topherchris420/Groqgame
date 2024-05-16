@@ -1,156 +1,184 @@
-import curses
+import streamlit as st
+import numpy as np
+import time
 import random
 
 # Game constants
-SNAKE_CHAR = '#'
-FOOD_CHAR = '@'
-GROQ_CHAR = 'G'
-POWER_UP_CHAR = '*'
-INITIAL_SPEED = 100  # Initial snake movement speed in milliseconds
+GRID_SIZE = 20
+INITIAL_SPEED = 0.2  # Initial snake movement speed (lower is faster)
+SNAKE_CHAR = '<div style="color: white;">■</div>'
+FOOD_CHAR = '<div style="color: red;">■</div>'
+GROQ_CHAR = '<div style="color: orange;">■</div>'
+POWER_UP_CHAR = '<div style="color: green;">■</div>'
 
-class GroqSnakeGame:
-    def __init__(self, stdscr):
-        self.stdscr = stdscr
-        self.score = 0
-        self.level = 1
-        self.speed = INITIAL_SPEED
-        self.snake = [(5, 5)]  # Initial snake position
-        self.food = self.generate_food()
-        self.groq_chip = self.generate_groq_chip()
-        self.power_up = self.generate_power_up()
-        self.direction = curses.KEY_RIGHT  # Initial direction
-        self.paused = False
+# Streamlit components
+st.set_page_config(page_title="Byte Vipers by Vers3Dynamics", page_icon=":snake:", layout="centered")
 
-        # Set up the screen
-        curses.curs_set(0)  # Hide the cursor
-        self.stdscr.nodelay(True)  # Non-blocking input
-        self.stdscr.timeout(self.speed)  # Timeout for input checking
+# Game state
+if 'game_state' not in st.session_state:
+    st.session_state.game_state = {
+        'score': 0,
+        'level': 1,
+        'speed': INITIAL_SPEED,
+        'snake': [(5, 5)],
+        'direction': 'RIGHT',
+        'food': (10, 10),
+        'groq_chip': (15, 15),
+        'power_up': None,
+        'game_over': False,
+        'paused': False
+    }
 
-        # Initialize colors
-        curses.start_color()
-        curses.init_pair(1, curses.COLOR_ORANGE, curses.COLOR_BLACK)  # Orange color for snake
-        curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)     # Red color for food
-        curses.init_pair(3, curses.COLOR_BLUE, curses.COLOR_BLACK)    # Blue color for Groq chip
-        curses.init_pair(4, curses.COLOR_GREEN, curses.COLOR_BLACK)   # Green color for power-up
+# Helper functions
+def generate_food(snake, groq_chip, power_up):
+    while True:
+        food = (random.randint(0, GRID_SIZE - 1), random.randint(0, GRID_SIZE - 1))
+        if food not in snake and food != groq_chip and (power_up is None or food != power_up):
+            return food
 
-    def run(self):
-        while True:
-            if not self.paused:
-                self.handle_input()
-                self.move_snake()
-                self.draw_screen()
-                self.check_collisions()
+def generate_groq_chip(snake, food, power_up):
+    while True:
+        chip = (random.randint(0, GRID_SIZE - 1), random.randint(0, GRID_SIZE - 1))
+        if chip not in snake and chip != food and (power_up is None or chip != power_up):
+            return chip
 
-            key = self.stdscr.getch()
-            if key == ord('p'):
-                self.paused = not self.paused
-                if self.paused:
-                    self.stdscr.addstr(curses.LINES // 2, curses.COLS // 2 - 5, "PAUSED")
-                    self.stdscr.refresh()
-                else:
-                    self.stdscr.timeout(self.speed)
-            elif not self.paused:
-                self.handle_input()
+def generate_power_up(snake, food, groq_chip):
+    while True:
+        power_up = (random.randint(0, GRID_SIZE - 1), random.randint(0, GRID_SIZE - 1))
+        if power_up not in snake and power_up != food and power_up != groq_chip:
+            return power_up
 
-    def handle_input(self):
-        key = self.stdscr.getch()
-        if key == curses.KEY_UP and self.direction != curses.KEY_DOWN:
-            self.direction = curses.KEY_UP
-        elif key == curses.KEY_DOWN and self.direction != curses.KEY_UP:
-            self.direction = curses.KEY_DOWN
-        elif key == curses.KEY_LEFT and self.direction != curses.KEY_RIGHT:
-            self.direction = curses.KEY_LEFT
-        elif key == curses.KEY_RIGHT and self.direction != curses.KEY_LEFT:
-            self.direction = curses.KEY_RIGHT
+def move_snake(snake, direction):
+    head_x, head_y = snake[0]
+    if direction == 'UP':
+        new_head = (head_x, head_y - 1)
+    elif direction == 'DOWN':
+        new_head = (head_x, head_y + 1)
+    elif direction == 'LEFT':
+        new_head = (head_x - 1, head_y)
+    elif direction == 'RIGHT':
+        new_head = (head_x + 1, head_y)
+    snake.insert(0, new_head)
+    snake.pop()
+    return snake
 
-    def move_snake(self):
-        head_x, head_y = self.snake[0]
-        if self.direction == curses.KEY_UP:
-            new_head = (head_x, head_y - 1)
-        elif self.direction == curses.KEY_DOWN:
-            new_head = (head_x, head_y + 1)
-        elif self.direction == curses.KEY_LEFT:
-            new_head = (head_x - 1, head_y)
-        elif self.direction == curses.KEY_RIGHT:
-            new_head = (head_x + 1, head_y)
+def check_collisions(snake, food, groq_chip, power_up):
+    head_x, head_y = snake[0]
+    # Check for collision with walls
+    if head_x < 0 or head_x >= GRID_SIZE or head_y < 0 or head_y >= GRID_SIZE:
+        return 'WALL'
+    # Check for collision with self
+    if snake[0] in snake[1:]:
+        return 'SELF'
+    # Check for collision with food
+    if snake[0] == food:
+        return 'FOOD'
+    # Check for collision with Groq chip
+    if snake[0] == groq_chip:
+        return 'GROQ'
+    # Check for collision with power-up
+    if power_up and snake[0] == power_up:
+        return 'POWER_UP'
+    return None
 
-        self.snake.insert(0, new_head)
-        self.snake.pop()
+def draw_grid(snake, food, groq_chip, power_up):
+    grid = np.full((GRID_SIZE, GRID_SIZE), '', dtype=object)
+    for x, y in snake:
+        grid[y, x] = SNAKE_CHAR
+    grid[food[1], food[0]] = FOOD_CHAR
+    grid[groq_chip[1], groq_chip[0]] = GROQ_CHAR
+    if power_up:
+        grid[power_up[1], power_up[0]] = POWER_UP_CHAR
+    grid_html = '<table style="border-spacing: 5px;">'
+    for row in grid:
+        grid_html += '<tr>'
+        for cell in row:
+            grid_html += f'<td style="width: 20px; height: 20px; text-align: center;">{cell}</td>'
+        grid_html += '</tr>'
+    grid_html += '</table>'
+    return grid_html
 
-    def draw_screen(self):
-        self.stdscr.clear()
-        self.draw_borders()
-        for y, x in self.snake:
-            self.stdscr.addch(x, y, SNAKE_CHAR, curses.color_pair(1))
-        self.stdscr.addch(self.food[1], self.food[0], FOOD_CHAR, curses.color_pair(2))
-        self.stdscr.addch(self.groq_chip[1], self.groq_chip[0], GROQ_CHAR, curses.color_pair(3))
-        if self.power_up:
-            self.stdscr.addch(self.power_up[1], self.power_up[0], POWER_UP_CHAR, curses.color_pair(4))
-        self.stdscr.addstr(0, 0, f"Score: {self.score} Level: {self.level}")
-        self.stdscr.refresh()
+# Game loop
+def game_loop():
+    state = st.session_state.game_state
+    if state['paused']:
+        return
+    
+    state['snake'] = move_snake(state['snake'], state['direction'])
+    collision = check_collisions(state['snake'], state['food'], state['groq_chip'], state['power_up'])
+    
+    if collision == 'WALL' or collision == 'SELF':
+        state['game_over'] = True
+    elif collision == 'FOOD':
+        state['score'] += 1
+        state['snake'].append(state['snake'][-1])  # Increase snake length
+        state['food'] = generate_food(state['snake'], state['groq_chip'], state['power_up'])
+        if state['score'] % 5 == 0:
+            state['level'] += 1
+            state['speed'] = max(0.05, state['speed'] - 0.01)
+    elif collision == 'GROQ':
+        state['score'] += 5
+        state['groq_chip'] = generate_groq_chip(state['snake'], state['food'], state['power_up'])
+    elif collision == 'POWER_UP':
+        state['score'] += 2
+        state['speed'] = max(0.05, state['speed'] - 0.05)
+        state['power_up'] = None
+    
+    st.session_state.game_state = state
 
-    def draw_borders(self):
-        for x in range(curses.COLS):
-            self.stdscr.addch(0, x, '#')
-            self.stdscr.addch(curses.LINES - 1, x, '#')
-        for y in range(curses.LINES):
-            self.stdscr.addch(y, 0, '#')
-            self.stdscr.addch(y, curses.COLS - 1, '#')
+# Streamlit UI
+st.title("Snake Game")
+st.markdown("Use the arrow keys to control the snake. Press 'P' to pause/resume.")
 
-    def check_collisions(self):
-        # Check for collision with food
-        if self.snake[0] == self.food:
-            self.score += 1
-            self.snake.append(self.snake[-1])  # Increase snake length
-            self.food = self.generate_food()
-            if self.score % 5 == 0:  # Increase level every 5 points
-                self.level += 1
-                self.speed = max(50, self.speed - 10)
-                self.stdscr.timeout(self.speed)
+# Draw the grid
+state = st.session_state.game_state
+grid_html = draw_grid(state['snake'], state['food'], state['groq_chip'], state['power_up'])
+st.markdown(grid_html, unsafe_allow_html=True)
 
-        # Check for collision with Groq chip
-        if self.snake[0] == self.groq_chip:
-            self.score += 5  # Higher score for Groq chip
-            self.groq_chip = self.generate_groq_chip()
+# Game controls
+if st.button('Start/Resume'):
+    st.session_state.game_state['paused'] = False
+    while not st.session_state.game_state['game_over']:
+        game_loop()
+        time.sleep(st.session_state.game_state['speed'])
+        st.experimental_rerun()
 
-        # Check for collision with power-up
-        if self.snake[0] == self.power_up:
-            self.score += 2
-            self.speed = max(50, self.speed - 20)  # Speed boost
-            self.stdscr.timeout(self.speed)
-            self.power_up = None
+if st.button('Pause'):
+    st.session_state.game_state['paused'] = True
 
-        # Check for collision with walls or self
-        head_x, head_y = self.snake[0]
-        if (head_x == 0 or head_x == curses.COLS - 1 or
-            head_y == 0 or head_y == curses.LINES - 1 or
-            self.snake[0] in self.snake[1:]):
-            self.stdscr.addstr(curses.LINES // 2, curses.COLS // 2 - 5, "GAME OVER")
-            self.stdscr.refresh()
-            curses.napms(2000)
-            curses.endwin()
-            quit()
+if st.session_state.game_state['game_over']:
+    st.write("Game Over!")
+    st.write(f"Final Score: {st.session_state.game_state['score']}")
+    if st.button('Restart'):
+        st.session_state.game_state = {
+            'score': 0,
+            'level': 1,
+            'speed': INITIAL_SPEED,
+            'snake': [(5, 5)],
+            'direction': 'RIGHT',
+            'food': (10, 10),
+            'groq_chip': (15, 15),
+            'power_up': None,
+            'game_over': False,
+            'paused': False
+        }
+        st.experimental_rerun()
 
-    def generate_food(self):
-        while True:
-            food = (random.randint(1, curses.COLS - 2), random.randint(1, curses.LINES - 2))
-            if food not in self.snake and food != self.groq_chip and (self.power_up is None or food != self.power_up):
-                return food
+# Keyboard controls
+def handle_key(key):
+    if key == 'up':
+        if st.session_state.game_state['direction'] != 'DOWN':
+            st.session_state.game_state['direction'] = 'UP'
+    elif key == 'down':
+        if st.session_state.game_state['direction'] != 'UP':
+            st.session_state.game_state['direction'] = 'DOWN'
+    elif key == 'left':
+        if st.session_state.game_state['direction'] != 'RIGHT':
+            st.session_state.game_state['direction'] = 'LEFT'
+    elif key == 'right':
+        if st.session_state.game_state['direction'] != 'LEFT':
+            st.session_state.game_state['direction'] = 'RIGHT'
+    elif key == 'p':
+        st.session_state.game_state['paused'] = not st.session_state.game_state['paused']
 
-    def generate_groq_chip(self):
-        while True:
-            chip = (random.randint(1, curses.COLS - 2), random.randint(1, curses.LINES - 2))
-            if chip not in self.snake and chip != self.food and (self.power_up is None or chip != self.power_up):
-                return chip
-
-    def generate_power_up(self):
-        while True:
-            power_up = (random.randint(1, curses.COLS - 2), random.randint(1, curses.LINES - 2))
-            if power_up not in self.snake and power_up != self.food and power_up != self.groq_chip:
-                return power_up
-
-def main(stdscr):
-    game = GroqSnakeGame(stdscr)
-    game.run()
-
-curses.wrapper(main)
+st.text_input('Press arrow keys or P to control the game', on_change=handle_key, key='key_input')
