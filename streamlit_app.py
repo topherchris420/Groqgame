@@ -6,13 +6,13 @@ import random
 # Game constants
 GRID_SIZE = 20
 INITIAL_SPEED = 0.2  # Initial snake movement speed (lower is faster)
-SNAKE_CHAR = '<div style="color: white;">■</div>'
+SNAKE_CHAR = '<div style="color: orange;">■</div>'
 FOOD_CHAR = '<div style="color: red;">■</div>'
-GROQ_CHAR = '<div style="color: orange;">■</div>'
+GROQ_CHAR = '<div style="color: blue;">■</div>'
 POWER_UP_CHAR = '<div style="color: green;">■</div>'
 
 # Streamlit components
-st.set_page_config(page_title="Byte Vipers by Vers3Dynamics", page_icon=":snake:", layout="centered")
+st.set_page_config(page_title="Byte Vypers by Vers3Dynamics", page_icon=":snake:", layout="centered")
 
 # Game state
 if 'game_state' not in st.session_state:
@@ -29,6 +29,7 @@ if 'game_state' not in st.session_state:
         'paused': False,
         'last_key': None
     }
+
 
 # Helper functions
 def generate_food(snake, groq_chip, power_up):
@@ -166,9 +167,44 @@ if st.session_state.game_state['game_over']:
         }
         st.experimental_rerun()
 
-# JavaScript for capturing key events
-st.markdown("")
-document.addEventListener('keydown', function(event)) {
+# JavaScript for capturing key events (updated)
+st.markdown("""
+<script>
+document.addEventListener('keydown', function(event) {
+  if (event.target === document.body) { // Prevent input in text fields
     var key = event.key;
-    ,var arrow_keys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'p'];
-    if (arrow_keys.includes) }
+    var arrow_keys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'p'];
+    if (arrow_keys.includes(key)) {
+        event.preventDefault(); // Prevent default scrolling behavior
+        var direction = '';
+        if (key === 'ArrowUp') direction = 'UP';
+        if (key === 'ArrowDown') direction = 'DOWN';
+        if (key === 'ArrowLeft') direction = 'LEFT';
+        if (key === 'ArrowRight') direction = 'RIGHT';
+        if (key === 'p') direction = 'PAUSE';
+
+        fetch('/streamlit/static/streamlit.app?action=keydown&direction=' + direction);
+    }
+  }
+});
+</script>
+""", unsafe_allow_html=True)
+
+# Process key events (updated)
+action = st.experimental_get_query_params().get("action", [])
+direction = st.experimental_get_query_params().get("direction", [])
+
+if 'keydown' in action and direction:
+    state = st.session_state.game_state
+    if direction[0] == 'UP' and state['direction'] != 'DOWN':
+        state['direction'] = 'UP'
+    elif direction[0] == 'DOWN' and state['direction'] != 'UP':
+        state['direction'] = 'DOWN'
+    elif direction[0] == 'LEFT' and state['direction'] != 'RIGHT':
+        state['direction'] = 'LEFT'
+    elif direction[0] == 'RIGHT' and state['direction'] != 'LEFT':
+        state['direction'] = 'RIGHT'
+    elif direction[0] == 'PAUSE':
+        state['paused'] = not state['paused']
+    st.session_state.game_state = state
+    st.experimental_rerun()
