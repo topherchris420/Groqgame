@@ -1,9 +1,6 @@
 import streamlit as st
 import numpy as np
-from typing import Generator
-from groq import Groq
 import os
-from typing import Optional, Dict, Union
 import time
 import random
 
