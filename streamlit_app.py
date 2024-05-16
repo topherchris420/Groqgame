@@ -30,9 +30,7 @@ if "game_state" not in st.session_state:
         "power_up": None,
         "game_over": False,
         "paused": False,
-        "pending_direction": None,  # Store the new direction from key press
     }
-
 
 # Helper functions
 def generate_food(snake, groq_chip, power_up):
@@ -109,38 +107,30 @@ def game_loop():
     if state["paused"] or state['game_over']:
         return
 
-    if state["pending_direction"]:  # Apply the pending direction change
-        if state["pending_direction"] == "UP" and state["direction"] != "DOWN":
-            state["direction"] = "UP"
-        elif state["pending_direction"] == "DOWN" and state["direction"] != "UP":
-            state["direction"] = "DOWN"
-        elif state["pending_direction"] == "LEFT" and state["direction"] != "RIGHT":
-            state["direction"] = "LEFT"
-        elif state["pending_direction"] == "RIGHT" and state["direction"] != "LEFT":
-            state["direction"] = "RIGHT"
-        state["pending_direction"] = None  # Reset the pending direction
+    # Move the snake automatically
+    if state["direction"] == "RIGHT":
+        state["snake"] = move_snake(state["snake"], "RIGHT")
+    elif state["direction"] == "LEFT":
+        state["snake"] = move_snake(state["snake"], "LEFT")
+    elif state["direction"] == "UP":
+        state["snake"] = move_snake(state["snake"], "UP")
+    elif state["direction"] == "DOWN":
+        state["snake"] = move_snake(state["snake"], "DOWN")
 
-    state["snake"] = move_snake(state["snake"], state["direction"])
-    collision = check_collisions(
-        state["snake"], state["food"], state["groq_chip"], state["power_up"]
-    )
+    collision = check_collisions(state["snake"], state["food"], state["groq_chip"], state["power_up"])
 
     if collision == "WALL" or collision == "SELF":
         state["game_over"] = True
     elif collision == "FOOD":
         state["score"] += 1
         state["snake"].append(state["snake"][-1])  # Increase snake length
-        state["food"] = generate_food(
-            state["snake"], state["groq_chip"], state["power_up"]
-        )
+        state["food"] = generate_food(state["snake"], state["groq_chip"], state["power_up"])
         if state["score"] % 5 == 0:
             state["level"] += 1
             state["speed"] = max(0.05, state["speed"] - 0.01)
     elif collision == "GROQ":
         state["score"] += 5
-        state["groq_chip"] = generate_groq_chip(
-            state["snake"], state["food"], state["power_up"]
-        )
+        state["groq_chip"] = generate_groq_chip(state["snake"], state["food"], state["power_up"])
     elif collision == "POWER_UP":
         state["score"] += 2
         state["speed"] = max(0.05, state["speed"] - 0.05)
@@ -148,8 +138,8 @@ def game_loop():
 
     st.session_state.game_state = state
 
-   # Schedule a rerun after a short delay
-    time.sleep(st.session_state.game_state["speed"])
+    # Schedule a rerun after a short delay
+    time.sleep(state["speed"])
     st.experimental_rerun()
 
 # Streamlit UI
@@ -163,9 +153,7 @@ level_container = st.empty()
 
 # Draw the grid
 state = st.session_state.game_state
-grid_html = draw_grid(
-    state["snake"], state["food"], state["groq_chip"], state["power_up"]
-)
+grid_html = draw_grid(state["snake"], state["food"], state["groq_chip"], state["power_up"])
 grid_container.markdown(grid_html, unsafe_allow_html=True)
 
 # Display score and level
@@ -175,7 +163,7 @@ level_container.write(f"Level: {state['level']}")
 # Game controls
 if st.button("Start/Resume"):
     st.session_state.game_state["paused"] = False
-    game_loop() # Start the game loop
+    game_loop()  # Start the game loop
 
 if st.button("Pause"):
     st.session_state.game_state["paused"] = True
@@ -195,46 +183,5 @@ if st.session_state.game_state["game_over"]:
             "power_up": None,
             "game_over": False,
             "paused": False,
-            "pending_direction": None,
         }
         st.experimental_rerun()
-
-
-# JavaScript for capturing key events
-st.markdown(
-    """
-<script>
-document.addEventListener('keydown', function(event) {
-  var key = event.key;
-  var arrow_keys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'p'];
-  if (arrow_keys.includes(key)) {
-    var direction = '';
-    if (key === 'ArrowUp') direction = 'UP';
-    if (key === 'ArrowDown') direction = 'DOWN';
-    if (key === 'ArrowLeft') direction = 'LEFT';
-    if (key === 'ArrowRight') direction = 'RIGHT';
-    if (key === 'p') direction = 'PAUSE';
-
-    // Update the hidden input field with the direction
-    document.getElementById('direction-input').value = direction;
-
-    // Trigger a change event to notify Streamlit
-    const inputEvent = new Event('input');
-    document.getElementById('direction-input').dispatchEvent(inputEvent);
-  }
-});
-</script>
-""",
-    unsafe_allow_html=True,
-)
-
-# Hidden input to capture direction changes
-direction_input = st.empty()
-direction = direction_input.text_input(
-    "Direction", key="direction-input", label_visibility="hidden"
-)
-
-# Process key events
-if direction:
-    st.session_state.game_state["pending_direction"] = direction
-    st.experimental_rerun()
