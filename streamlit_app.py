@@ -185,3 +185,7 @@ if st.session_state.game_state["game_over"]:
             "paused": False,
         }
         st.experimental_rerun()
+
+# Run the game loop continuously
+while True:
+    game_loop()
