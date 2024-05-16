@@ -170,5 +170,5 @@ if st.session_state.game_state['game_over']:
 st.markdown("")
 document.addEventListener('keydown', function(event)) {
     var key = event.key;
-    var arrow_keys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'p'];
+    ,var arrow_keys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'p'];
     if (arrow_keys.includes) }
