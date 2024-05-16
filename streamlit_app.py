@@ -12,22 +12,24 @@ GROQ_CHAR = '<div style="color: black;">■</div>'
 POWER_UP_CHAR = '<div style="color: green;">■</div>'
 
 # Streamlit components
-st.set_page_config(page_title="Byte Vypers by Vers3Dynamics", page_icon=":snake:", layout="centered")
+st.set_page_config(
+    page_title="Byte Vypers by Vers3Dynamics", page_icon=":snake:", layout="centered"
+)
 
 # Game state
-if 'game_state' not in st.session_state:
+if "game_state" not in st.session_state:
     st.session_state.game_state = {
-        'score': 0,
-        'level': 1,
-        'speed': INITIAL_SPEED,
-        'snake': [(5, 5)],
-        'direction': 'RIGHT',
-        'food': (10, 10),
-        'groq_chip': (15, 15),
-        'power_up': None,
-        'game_over': False,
-        'paused': False,
-        'pending_direction': None  # Store the new direction from key press
+        "score": 0,
+        "level": 1,
+        "speed": INITIAL_SPEED,
+        "snake": [(5, 5)],
+        "direction": "RIGHT",
+        "food": (10, 10),
+        "groq_chip": (15, 15),
+        "power_up": None,
+        "game_over": False,
+        "paused": False,
+        "pending_direction": None,  # Store the new direction from key press
     }
 
 
@@ -103,22 +105,24 @@ def draw_grid(snake, food, groq_chip, power_up):
 # Game loop
 def game_loop():
     state = st.session_state.game_state
-    if state['paused']:
+    if state["paused"]:
         return
 
-    if state['pending_direction']:  # Apply the pending direction change
-        if state['pending_direction'] == 'UP' and state['direction'] != 'DOWN':
-            state['direction'] = 'UP'
-        elif state['pending_direction'] == 'DOWN' and state['direction'] != 'UP':
-            state['direction'] = 'DOWN'
-        elif state['pending_direction'] == 'LEFT' and state['direction'] != 'RIGHT':
-            state['direction'] = 'LEFT'
-        elif state['pending_direction'] == 'RIGHT' and state['direction'] != 'LEFT':
-            state['direction'] = 'RIGHT'
-        state['pending_direction'] = None  # Reset the pending direction
+    if state["pending_direction"]:  # Apply the pending direction change
+        if state["pending_direction"] == "UP" and state["direction"] != "DOWN":
+            state["direction"] = "UP"
+        elif state["pending_direction"] == "DOWN" and state["direction"] != "UP":
+            state["direction"] = "DOWN"
+        elif state["pending_direction"] == "LEFT" and state["direction"] != "RIGHT":
+            state["direction"] = "LEFT"
+        elif state["pending_direction"] == "RIGHT" and state["direction"] != "LEFT":
+            state["direction"] = "RIGHT"
+        state["pending_direction"] = None  # Reset the pending direction
 
-    state['snake'] = move_snake(state['snake'], state['direction'])
-    collision = check_collisions(state['snake'], state['food'], state['groq_chip'], state['power_up'])
+    state["snake"] = move_snake(state["snake"], state["direction"])
+    collision = check_collisions(
+        state["snake"], state["food"], state["groq_chip"], state["power_up"]
+    )
 
     
     if collision == 'WALL' or collision == 'SELF':
@@ -144,10 +148,22 @@ def game_loop():
 st.title("Byte Vipers")
 st.markdown("Use the arrow keys to control the snake. Press 'P' to pause/resume.")
 
+# Create empty containers for dynamic updates
+grid_container = st.empty()
+score_container = st.empty()
+level_container = st.empty()
+
 # Draw the grid
 state = st.session_state.game_state
-grid_html = draw_grid(state['snake'], state['food'], state['groq_chip'], state['power_up'])
-st.markdown(grid_html, unsafe_allow_html=True)
+grid_html = draw_grid(
+    state["snake"], state["food"], state["groq_chip"], state["power_up"]
+)
+grid_container.markdown(grid_html, unsafe_allow_html=True)
+
+# Display score and level
+score_container.write(f"Score: {state['score']}")
+level_container.write(f"Level: {state['level']}")
+
 
 # Game controls
 if st.button('Start/Resume'):
@@ -179,7 +195,8 @@ if st.session_state.game_state['game_over']:
         st.experimental_rerun()
 
 # JavaScript for capturing key events
-st.markdown("""
+st.markdown(
+    """
 <script>
 document.addEventListener('keydown', function(event) {
   var key = event.key;
@@ -201,16 +218,26 @@ document.addEventListener('keydown', function(event) {
   }
 });
 </script>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 # Hidden input to capture direction changes
 direction_input = st.empty()
 direction = direction_input.text_input('Direction', key='direction-input', label_visibility="hidden")
 
 # Process key events using a separate endpoint
-@st.server.post('/direction')
+@st.server.post("/direction")
 async def handle_direction(request):
     data = await request.json()
-    st.session_state.game_state['pending_direction'] = data['direction']
-    st.experimental_rerun()
+    st.session_state.game_state["pending_direction"] = data["direction"]
+    # Update the grid, score, and level containers instead of rerunning the entire app
+    state = st.session_state.game_state
+    grid_html = draw_grid(
+        state["snake"], state["food"], state["groq_chip"], state["power_up"]
+    )
+    grid_container.markdown(grid_html, unsafe_allow_html=True)
+    score_container.write(f"Score: {state['score']}")
+    level_container.write(f"Level: {state['level']}")
+
 
