@@ -214,18 +214,3 @@ async def handle_direction(request):
     st.session_state.game_state['pending_direction'] = data['direction']
     st.experimental_rerun()
 
-# Process key events
-if direction:
-    state = st.session_state.game_state
-    if direction == 'UP' and state['direction'] != 'DOWN':
-        state['direction'] = 'UP'
-    elif direction == 'DOWN' and state['direction'] != 'UP':
-        state['direction'] = 'DOWN'
-    elif direction == 'LEFT' and state['direction'] != 'RIGHT':
-        state['direction'] = 'LEFT'
-    elif direction == 'RIGHT' and state['direction'] != 'LEFT':
-        state['direction'] = 'RIGHT'
-    elif direction == 'PAUSE':
-        state['paused'] = not state['paused']
-    st.session_state.game_state = state
-    st.experimental_rerun()
