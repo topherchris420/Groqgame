@@ -154,7 +154,7 @@ def game_loop():
 
 # Streamlit UI
 st.title("free access to james and leonardo da vinci")
-st.markdown("democratize ai.")
+st.markdown("don't go to far, too fast...")
 
 # Create empty containers for dynamic updates
 grid_container = st.empty()
