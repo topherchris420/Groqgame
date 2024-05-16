@@ -15,7 +15,7 @@ POWER_UP_CHAR = '<div style="color: green;">■</div>'
 st.set_page_config(
     page_title="chris woodyard", page_icon="🧮", layout="centered"
 )
-st.markdown(f'<a href="https://woodyard.streamlit.app/" style="text-decoration:none; color: #0e76a8;"><h2>GenAI chatbots designed to elevate your experience to unprecedented heights.</h2></a>', unsafe_allow_html=True)
+st.markdown(f'<a href="https://woodyard.streamlit.app/" style="text-decoration:none; color: #0e76a8;"><h2>(GenAI chatbots designed to elevate your experience to unprecedented heights., divider="rainbow", anchor=False)</h2></a>', unsafe_allow_html=True)
 
 # Game state
 if "game_state" not in st.session_state:
