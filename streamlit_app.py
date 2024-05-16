@@ -8,7 +8,7 @@ GRID_SIZE = 20
 INITIAL_SPEED = 0.2  # Initial snake movement speed (lower is faster)
 SNAKE_CHAR = '<div style="color: orange;">■</div>'
 FOOD_CHAR = '<div style="color: red;">■</div>'
-GROQ_CHAR = '<div style="color: blue;">■</div>'
+GROQ_CHAR = '<div style="color: black;">■</div>'
 POWER_UP_CHAR = '<div style="color: green;">■</div>'
 
 # Streamlit components
