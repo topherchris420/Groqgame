@@ -172,4 +172,4 @@ st.markdown("""
 document.addEventListener('keydown', function(event) {
     var key = event.key;
     var arrow_keys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'p'];
-    if (arrow_keys.includes)
+    if (arrow_keys.includes
