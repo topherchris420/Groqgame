@@ -167,7 +167,7 @@ if st.session_state.game_state['game_over']:
         st.experimental_rerun()
 
 # JavaScript for capturing key events
-st.markdown("""
+st.markdown(""
 <script>
 document.addEventListener('keydown', function(event) {
     var key = event.key;
