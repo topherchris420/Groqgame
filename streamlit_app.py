@@ -145,12 +145,11 @@ def game_loop():
         state["speed"] = max(0.05, state["speed"] - 0.05)
         state["power_up"] = None
 
-    st.session_state.game_state = state
+        st.session_state.game_state = state
 
- # Schedule a rerun after a short delay
+    # Schedule a rerun after a short delay
     time.sleep(st.session_state.game_state["speed"])
     st.experimental_rerun()
-
 
 # Streamlit UI
 st.title("Byte Vipers")
@@ -215,12 +214,12 @@ document.addEventListener('keydown', function(event) {
     if (key === 'ArrowRight') direction = 'RIGHT';
     if (key === 'p') direction = 'PAUSE';
 
-    // Send the direction to the server using fetch
-    fetch('/direction', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ direction: direction })
-    });
+    // Update the hidden input field with the direction
+    document.getElementById('direction-input').value = direction;
+
+    // Trigger a change event to notify Streamlit
+    const inputEvent = new Event('input');
+    document.getElementById('direction-input').dispatchEvent(inputEvent);
   }
 });
 </script>
@@ -230,20 +229,11 @@ document.addEventListener('keydown', function(event) {
 
 # Hidden input to capture direction changes
 direction_input = st.empty()
-direction = direction_input.text_input('Direction', key='direction-input', label_visibility="hidden")
+direction = direction_input.text_input(
+    "Direction", key="direction-input", label_visibility="hidden"
+)
 
-# Process key events using a separate endpoint
-@st.server.post("/direction")
-async def handle_direction(request):
-    data = await request.json()
-    st.session_state.game_state["pending_direction"] = data["direction"]
-    # Update the grid, score, and level containers instead of rerunning the entire app
-    state = st.session_state.game_state
-    grid_html = draw_grid(
-        state["snake"], state["food"], state["groq_chip"], state["power_up"]
-    )
-    grid_container.markdown(grid_html, unsafe_allow_html=True)
-    score_container.write(f"Score: {state['score']}")
-    level_container.write(f"Level: {state['level']}")
-
-
+# Process key events
+if direction:
+    st.session_state.game_state["pending_direction"] = direction
+    st.experimental_rerun()
