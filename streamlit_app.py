@@ -4,11 +4,11 @@ import time
 import random
 
 # Game constants
-GRID_SIZE = 20
+GRID_SIZE = 10
 INITIAL_SPEED = 0.2  # Initial snake movement speed (lower is faster)
 SNAKE_CHAR = '<div style="color: orange;">Powered by Groq</div>'
-FOOD_CHAR = '<div style="color: red;">Vers3Dynamics</div>'
-GROQ_CHAR = '<div style="color: black;">■</div>'
+FOOD_CHAR = '<div style="color: green;">Vers3Dynamics</div>'
+GROQ_CHAR = '<div style="color: purple;">by christopher■</div>'
 POWER_UP_CHAR = '<div style="color: green;">■</div>'
 
 # Streamlit components
