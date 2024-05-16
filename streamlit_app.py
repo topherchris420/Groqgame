@@ -153,8 +153,8 @@ def game_loop():
     st.experimental_rerun()
 
 # Streamlit UI
-st.title("Byte Vipers")
-st.markdown("Use the arrow keys to control Groq. Press 'P' to pause/resume.")
+st.title("free access to james and leonardo da vinci")
+st.markdown("democratize ai.")
 
 # Create empty containers for dynamic updates
 grid_container = st.empty()
