@@ -8,7 +8,7 @@ GRID_SIZE = 20
 INITIAL_SPEED = 0.2  # Initial snake movement speed (lower is faster)
 SNAKE_CHAR = '<div style="color: white;">■</div>'
 FOOD_CHAR = '<div style="color: red;">■</div>'
-GROQ_CHAR = '<div style="color: orange;">■</div>'
+GROQ_CHAR = '<div style="color: ornage;">■</div>'
 POWER_UP_CHAR = '<div style="color: green;">■</div>'
 
 # Streamlit components
@@ -26,7 +26,8 @@ if 'game_state' not in st.session_state:
         'groq_chip': (15, 15),
         'power_up': None,
         'game_over': False,
-        'paused': False
+        'paused': False,
+        'last_key': None
     }
 
 # Helper functions
@@ -160,31 +161,45 @@ if st.session_state.game_state['game_over']:
             'groq_chip': (15, 15),
             'power_up': None,
             'game_over': False,
-            'paused': False
+            'paused': False,
+            'last_key': None
         }
         st.experimental_rerun()
 
-# Keyboard controls
-def handle_key(key):
-    if key == 'up':
-        if st.session_state.game_state['direction'] != 'DOWN':
-            st.session_state.game_state['direction'] = 'UP'
-    elif key == 'down':
-        if st.session_state.game_state['direction'] != 'UP':
-            st.session_state.game_state['direction'] = 'DOWN'
-    elif key == 'left':
-        if st.session_state.game_state['direction'] != 'RIGHT':
-            st.session_state.game_state['direction'] = 'LEFT'
-    elif key == 'right':
-        if st.session_state.game_state['direction'] != 'LEFT':
-            st.session_state.game_state['direction'] = 'RIGHT'
-    elif key == 'p':
-        st.session_state.game_state['paused'] = not st.session_state.game_state['paused']
+# JavaScript for capturing key events
+st.markdown("""
+<script>
+document.addEventListener('keydown', function(event) {
+    var key = event.key;
+    var arrow_keys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'p'];
+    if (arrow_keys.includes(key)) {
+        var direction = '';
+        if (key == 'ArrowUp') direction = 'UP';
+        if (key == 'ArrowDown') direction = 'DOWN';
+        if (key == 'ArrowLeft') direction = 'LEFT';
+        if (key == 'ArrowRight') direction = 'RIGHT';
+        if (key == 'p') direction = 'PAUSE';
 
-st.text_input('Press arrow keys or P to control the game', on_change=handle_key, key='key_input')
+        fetch('/streamlit/static/streamlit.app?action=keydown&direction=' + direction);
+    }
+});
+</script>
+""", unsafe_allow_html=True)
 
-# Run the game loop
-while True:
-    game_loop()
-    time.sleep(st.session_state.game_state['speed'])
+# Process key events
+action = st.experimental_get_query_params().get("action")
+direction = st.experimental_get_query_params().get("direction")
+
+if action == ['keydown'] and direction:
+    if direction[0] == 'UP' and state['direction'] != 'DOWN':
+        state['direction'] = 'UP'
+    elif direction[0] == 'DOWN' and state['direction'] != 'UP':
+        state['direction'] = 'DOWN'
+    elif direction[0] == 'LEFT' and state['direction'] != 'RIGHT':
+        state['direction'] = 'LEFT'
+    elif direction[0] == 'RIGHT' and state['direction'] != 'LEFT':
+        state['direction'] = 'RIGHT'
+    elif direction[0] == 'PAUSE':
+        state['paused'] = not state['paused']
+    st.session_state.game_state = state
     st.experimental_rerun()
