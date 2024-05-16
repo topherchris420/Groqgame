@@ -145,9 +145,9 @@ def game_loop():
         state["speed"] = max(0.05, state["speed"] - 0.05)
         state["power_up"] = None
 
-        st.session_state.game_state = state
+    st.session_state.game_state = state
 
-    # Schedule a rerun after a short delay
+   # Schedule a rerun after a short delay
     time.sleep(st.session_state.game_state["speed"])
     st.experimental_rerun()
 
@@ -171,55 +171,33 @@ grid_container.markdown(grid_html, unsafe_allow_html=True)
 score_container.write(f"Score: {state['score']}")
 level_container.write(f"Level: {state['level']}")
 
+# Game controls
+if st.button("Start/Resume"):
+    st.session_state.game_state["paused"] = False
+    game_loop() # Start the game loop
 
-# Game loop
-def game_loop():
-    state = st.session_state.game_state
-    if state["paused"] or state['game_over']:
-        return
+if st.button("Pause"):
+    st.session_state.game_state["paused"] = True
 
-    if state["pending_direction"]:  # Apply the pending direction change
-        if state["pending_direction"] == "UP" and state["direction"] != "DOWN":
-            state["direction"] = "UP"
-        elif state["pending_direction"] == "DOWN" and state["direction"] != "UP":
-            state["direction"] = "DOWN"
-        elif state["pending_direction"] == "LEFT" and state["direction"] != "RIGHT":
-            state["direction"] = "LEFT"
-        elif state["pending_direction"] == "RIGHT" and state["direction"] != "LEFT":
-            state["direction"] = "RIGHT"
-        state["pending_direction"] = None  # Reset the pending direction
+if st.session_state.game_state["game_over"]:
+    st.write("Game Over!")
+    st.write(f"Final Score: {st.session_state.game_state['score']}")
+    if st.button("Restart"):
+        st.session_state.game_state = {
+            "score": 0,
+            "level": 1,
+            "speed": INITIAL_SPEED,
+            "snake": [(5, 5)],
+            "direction": "RIGHT",
+            "food": (10, 10),
+            "groq_chip": (15, 15),
+            "power_up": None,
+            "game_over": False,
+            "paused": False,
+            "pending_direction": None,
+        }
+        st.experimental_rerun()
 
-    state["snake"] = move_snake(state["snake"], state["direction"])
-    collision = check_collisions(
-        state["snake"], state["food"], state["groq_chip"], state["power_up"]
-    )
-
-    if collision == "WALL" or collision == "SELF":
-        state["game_over"] = True
-    elif collision == "FOOD":
-        state["score"] += 1
-        state["snake"].append(state["snake"][-1])  # Increase snake length
-        state["food"] = generate_food(
-            state["snake"], state["groq_chip"], state["power_up"]
-        )
-        if state["score"] % 5 == 0:
-            state["level"] += 1
-            state["speed"] = max(0.05, state["speed"] - 0.01)
-    elif collision == "GROQ":
-        state["score"] += 5
-        state["groq_chip"] = generate_groq_chip(
-            state["snake"], state["food"], state["power_up"]
-        )
-    elif collision == "POWER_UP":
-        state["score"] += 2
-        state["speed"] = max(0.05, state["speed"] - 0.05)
-        state["power_up"] = None
-
-    st.session_state.game_state = state # <--- Corrected indentation
-
-    # Schedule a rerun after a short delay
-    time.sleep(st.session_state.game_state["speed"])
-    st.experimental_rerun()
 
 # JavaScript for capturing key events
 st.markdown(
