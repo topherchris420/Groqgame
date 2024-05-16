@@ -27,7 +27,9 @@ if 'game_state' not in st.session_state:
         'power_up': None,
         'game_over': False,
         'paused': False,
+        'pending_direction': None  # Store the new direction from key press
     }
+
 
 # Helper functions
 def generate_food(snake, groq_chip, power_up):
@@ -103,9 +105,21 @@ def game_loop():
     state = st.session_state.game_state
     if state['paused']:
         return
-    
+
+    if state['pending_direction']:  # Apply the pending direction change
+        if state['pending_direction'] == 'UP' and state['direction'] != 'DOWN':
+            state['direction'] = 'UP'
+        elif state['pending_direction'] == 'DOWN' and state['direction'] != 'UP':
+            state['direction'] = 'DOWN'
+        elif state['pending_direction'] == 'LEFT' and state['direction'] != 'RIGHT':
+            state['direction'] = 'LEFT'
+        elif state['pending_direction'] == 'RIGHT' and state['direction'] != 'LEFT':
+            state['direction'] = 'RIGHT'
+        state['pending_direction'] = None  # Reset the pending direction
+
     state['snake'] = move_snake(state['snake'], state['direction'])
     collision = check_collisions(state['snake'], state['food'], state['groq_chip'], state['power_up'])
+
     
     if collision == 'WALL' or collision == 'SELF':
         state['game_over'] = True
@@ -178,9 +192,12 @@ document.addEventListener('keydown', function(event) {
     if (key === 'ArrowRight') direction = 'RIGHT';
     if (key === 'p') direction = 'PAUSE';
 
-    const directionInput = document.getElementById('direction-input');
-    directionInput.value = direction;
-    directionInput.dispatchEvent(new Event('change'));
+    // Send the direction to the server using fetch
+    fetch('/direction', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ direction: direction })
+    });
   }
 });
 </script>
@@ -189,6 +206,13 @@ document.addEventListener('keydown', function(event) {
 # Hidden input to capture direction changes
 direction_input = st.empty()
 direction = direction_input.text_input('Direction', key='direction-input', label_visibility="hidden")
+
+# Process key events using a separate endpoint
+@st.server.post('/direction')
+async def handle_direction(request):
+    data = await request.json()
+    st.session_state.game_state['pending_direction'] = data['direction']
+    st.experimental_rerun()
 
 # Process key events
 if direction:
