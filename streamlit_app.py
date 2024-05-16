@@ -127,7 +127,7 @@ def game_loop():
     st.session_state.game_state = state
 
 # Streamlit UI
-st.title("Snake Game")
+st.title("Byte Vipers")
 st.markdown("Use the arrow keys to control the snake. Press 'P' to pause/resume.")
 
 # Draw the grid
