@@ -153,7 +153,7 @@ def game_loop():
 
 # Streamlit UI
 st.title("Byte Vipers")
-st.markdown("Use the arrow keys to control the snake. Press 'P' to pause/resume.")
+st.markdown("Use the arrow keys to control Groq. Press 'P' to pause/resume.")
 
 # Create empty containers for dynamic updates
 grid_container = st.empty()
