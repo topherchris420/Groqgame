@@ -1,11 +1,10 @@
 import streamlit as st
 import numpy as np
-import os
 import time
 import random
 
 # Game constants
-GRID_SIZE = 20
+GRID_SIZE = 10
 INITIAL_SPEED = 0.2  # Initial snake movement speed (lower is faster)
 SNAKE_CHAR = '<div style="color: orange;">Powered by Groq</div>'
 FOOD_CHAR = '<div style="color: green;">Vers3Dynamics</div>'
@@ -32,14 +31,6 @@ if "game_state" not in st.session_state:
         "paused": False,
         "pending_direction": None,  # Store the new direction from key press
     }
-def _get_system_prompt():
-    current_dir = os.path.dirname(__file__)
-    file_path = os.path.join(current_dir, "system_prompt.txt")
-    with open(file_path, "r", encoding="utf-8") as file:
-        prompt = file.read()
-        return prompt
-
-system_prompt = _get_system_prompt()
 
 
 # Helper functions
