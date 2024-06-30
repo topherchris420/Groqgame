@@ -51,7 +51,7 @@ def main():
         st.button("Create Wormhole")
         st.button("Initiate Hyperjump")
         
-        st.markdown('<a href="https://Vers3Dynamics.io/" style="text-decoration:none; color: #ADD8E6;"><h2>Vers3Dynamics</h2></a>', 
+        st.markdown('<a href="https://vers3dynamics.tiiny.site/" style="text-decoration:none; color: #ADD8E6;"><h2>Vers3Dynamics</h2></a>', 
     unsafe_allow_html=True)
         st.markdown("### Object Properties")
         
