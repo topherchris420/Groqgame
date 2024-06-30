@@ -56,10 +56,11 @@ def main():
         st.image("2icyfq6plns61_1.jpg", use_column_width=True)
 
     with col3:
-        st.markdown("## Hyperdimensional Visualization")
+        st.markdown("## Vers3Dynamics")
         st.write("""
         Welcome to Vers3Dynamics' cutting-edge Hyperdimensional Visualization tool. 
-        This advanced simulator allows you to explore the concept of teleportation across multiple dimensions.
+        This advanced simulator allows you to explore the concept of teleportation across multiple dimensions,
+        reimagining location as a dynamic variable in object properties.
 
         Features:
         - Teleportation: Instantly move the object to random locations within the visualization space.
