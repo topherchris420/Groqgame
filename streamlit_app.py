@@ -3,15 +3,26 @@ import random
 import numpy as np
 
 def generate_coordinates():
+    """
+    Generate a list of 3 random coordinates within the range of -1000 to 1000.
+    
+    Returns:
+        List[float]: A list containing 3 coordinate values.
+    """
     return [round(random.uniform(-1000, 1000), 2) for _ in range(3)]
 
 def generate_quantum_state():
+    """
+    Generate a list of 3 random quantum state values between 0 and 1.
+    
+    Returns:
+        List[float]: A list containing 3 quantum state values.
+    """
     return [round(random.random(), 6) for _ in range(3)]
 
 def main():
     st.set_page_config(page_icon="🚀", page_title="Vers3Dynamics", layout="wide")
 
-    # Custom CSS for green text on black background
     st.markdown("""
     <style>
     .stApp {
@@ -42,6 +53,7 @@ def main():
 
         st.markdown("### Vers3Dynamics.io")
         st.markdown("### Object Properties")
+        
         coordinates = generate_coordinates()
         st.write(f"Position: X: {coordinates[0]}, Y: {coordinates[1]}, Z: {coordinates[2]}")
         
@@ -52,7 +64,6 @@ def main():
 
     with col2:
         st.markdown("## Hyperdimensional Visualization")
-        # Placeholder for visualization
         st.image("2icyfq6plns61_1.jpg", use_column_width=True)
 
     with col3:
