@@ -1,1 +1,1 @@
-*Groq Game* by Vers3Dynamics
+*Vers3Dynamics*
