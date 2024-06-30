@@ -2,10 +2,7 @@ import streamlit as st
 import plotly.graph_objects as go
 import numpy as np
 from scipy.spatial.transform import Rotation
-import plotly.io as pio
-
-# Enable Plotly's FigureWidget for interactivity
-pio.renderers.default = "notebook"
+from scipy.integrate import odeint
 
 # Initialize session state
 if 'coordinates' not in st.session_state:
@@ -20,25 +17,106 @@ if 'entropy' not in st.session_state:
     st.session_state.entropy = np.random.random()
 if 'time_dilation' not in st.session_state:
     st.session_state.time_dilation = 1.0
-if 'selected_particle' not in st.session_state:
-    st.session_state.selected_particle = None
 
 # Constants
 G = 6.67430e-11  # Gravitational constant
 c = 299792458  # Speed of light
 hbar = 1.054571817e-34  # Reduced Planck constant
 
-# ... [Keep all the previous physics functions] ...
+def lorentz_factor(v):
+    return 1 / np.sqrt(1 - np.sum(v**2) / c**2)
+
+def rotate_4d(coords, angle, axis1, axis2):
+    rotation_matrix = np.eye(4)
+    rotation_matrix[axis1, axis1] = np.cos(angle)
+    rotation_matrix[axis1, axis2] = -np.sin(angle)
+    rotation_matrix[axis2, axis1] = np.sin(angle)
+    rotation_matrix[axis2, axis2] = np.cos(angle)
+    return np.dot(coords, rotation_matrix.T)
+
+def quantum_tunneling():
+    # Simulate quantum tunneling by allowing particles to pass through a potential barrier
+    barrier = np.random.choice(len(st.session_state.coordinates))
+    tunneling_probability = np.exp(-2 * np.random.random())  # Simplified tunneling probability
+    if np.random.random() < tunneling_probability:
+        st.session_state.coordinates[barrier] = np.random.uniform(-5, 5, 4)
+
+def gravitational_time_dilation():
+    # Calculate time dilation based on proximity to a massive object
+    mass = 1e10  # Mass of a hypothetical massive object
+    r = np.linalg.norm(st.session_state.coordinates[0, :3])  # Distance from the massive object
+    st.session_state.time_dilation = np.sqrt(1 - (2 * G * mass) / (r * c**2))
+
+def update_quantum_state():
+    # Update quantum state based on a simplified Schrödinger equation
+    H = np.random.random((3, 3))  # Random Hamiltonian
+    H = H + H.T  # Make it Hermitian
+    _, eigenvectors = np.linalg.eigh(H)
+    st.session_state.quantum_state = eigenvectors[:, 0]  # Ground state
+
+def schwarzschild_metric(coords):
+    # Implement a simplified Schwarzschild metric for spacetime curvature
+    r = np.linalg.norm(coords[:3])
+    rs = 2 * G * 1e10 / c**2  # Schwarzschild radius for a massive object
+    if r > rs:
+        return coords * (1 - rs / r)
+    else:
+        return coords
+
+def update_coordinates(dt):
+    # Update coordinates and velocities based on relativistic mechanics
+    for i in range(len(st.session_state.coordinates)):
+        v = st.session_state.velocities[i]
+        gamma = lorentz_factor(v)
+        st.session_state.coordinates[i] += v * dt / gamma
+        
+        # Apply gravitational effects
+        r = np.linalg.norm(st.session_state.coordinates[i, :3])
+        if r > 0:
+            a = -G * 1e10 * st.session_state.coordinates[i, :3] / (r**3)
+            st.session_state.velocities[i, :3] += a * dt
+
+    # Apply Schwarzschild metric
+    st.session_state.coordinates = np.apply_along_axis(schwarzschild_metric, 1, st.session_state.coordinates)
+
+def teleport():
+    st.session_state.coordinates = np.random.uniform(-5, 5, (10, 4))
+    st.session_state.velocities = np.zeros((10, 4))
+    update_quantum_state()
+    st.session_state.entropy = np.random.random()
+
+def toggle_dimensions():
+    st.session_state.dimension = 4 if st.session_state.dimension == 3 else 3
+
+def open_dimensional_rift():
+    # Create a rift by applying a non-linear transformation and quantum tunneling
+    st.session_state.coordinates = np.sin(st.session_state.coordinates)
+    quantum_tunneling()
+
+def create_wormhole():
+    # Connect distant points and apply time dilation
+    if len(st.session_state.coordinates) > 1:
+        st.session_state.coordinates[0] = st.session_state.coordinates[-1]
+    gravitational_time_dilation()
+
+def hyperjump():
+    # Extreme teleportation with relativistic effects
+    st.session_state.coordinates = np.random.uniform(-10, 10, (10, 4))
+    st.session_state.velocities = np.random.uniform(-0.1*c, 0.1*c, (10, 4))
 
 def update_visualization():
+    fig = go.Figure()
+
+    # Project 4D to 3D (simple orthographic projection)
     coords_3d = st.session_state.coordinates[:, :3]
+
+    # Color based on 4th dimension or velocity
     if st.session_state.dimension == 4:
         colors = st.session_state.coordinates[:, 3]
     else:
         colors = np.linalg.norm(st.session_state.velocities[:, :3], axis=1) / c
 
-    fig = go.FigureWidget()
-    scatter = go.Scatter3d(
+    fig.add_trace(go.Scatter3d(
         x=coords_3d[:, 0],
         y=coords_3d[:, 1],
         z=coords_3d[:, 2],
@@ -48,57 +126,20 @@ def update_visualization():
             color=colors,
             colorscale='Viridis',
             opacity=0.8
-        ),
-        hoverinfo='text',
-        text=[f'Particle {i}' for i in range(len(coords_3d))]
-    )
-    fig.add_trace(scatter)
+        )
+    ))
 
     fig.update_layout(
         scene=dict(
             xaxis_title='X',
             yaxis_title='Y',
-            zaxis_title='Z',
-            aspectmode='cube'
+            zaxis_title='Z'
         ),
         width=700,
-        height=700,
         margin=dict(r=20, b=10, l=10, t=10)
     )
 
-    # Add interactivity
-    fig.update_layout(
-        updatemenus=[
-            dict(
-                type="buttons",
-                showactive=False,
-                buttons=[
-                    dict(label="Play",
-                         method="animate",
-                         args=[None, {"frame": {"duration": 50, "redraw": True},
-                                      "fromcurrent": True,
-                                      "transition": {"duration": 0}}]),
-                    dict(label="Pause",
-                         method="animate",
-                         args=[[None], {"frame": {"duration": 0, "redraw": False},
-                                        "mode": "immediate",
-                                        "transition": {"duration": 0}}])
-                ]
-            )
-        ]
-    )
-
     return fig
-
-def on_click(trace, points, state):
-    if len(points.point_inds) > 0:
-        st.session_state.selected_particle = points.point_inds[0]
-        st.write(f"Selected Particle: {st.session_state.selected_particle}")
-
-def apply_force(direction):
-    if st.session_state.selected_particle is not None:
-        force = np.array(direction) * 0.1
-        st.session_state.velocities[st.session_state.selected_particle, :3] += force
 
 def main():
     st.set_page_config(page_title="Vers3Dynamics", layout="wide")
@@ -137,21 +178,10 @@ def main():
         if st.button("Initiate Hyperjump"):
             hyperjump()
 
-        st.markdown("### Particle Manipulation")
-        st.button("Apply Force +X", on_click=lambda: apply_force([1, 0, 0]))
-        st.button("Apply Force -X", on_click=lambda: apply_force([-1, 0, 0]))
-        st.button("Apply Force +Y", on_click=lambda: apply_force([0, 1, 0]))
-        st.button("Apply Force -Y", on_click=lambda: apply_force([0, -1, 0]))
-        st.button("Apply Force +Z", on_click=lambda: apply_force([0, 0, 1]))
-        st.button("Apply Force -Z", on_click=lambda: apply_force([0, 0, -1]))
-
         st.markdown(f"### Current Dimension: {st.session_state.dimension}D")
         st.markdown("### Object Properties")
-        if st.session_state.selected_particle is not None:
-            i = st.session_state.selected_particle
-            st.write(f"Selected Particle: {i}")
-            st.write(f"Position: {st.session_state.coordinates[i]}")
-            st.write(f"Velocity: {st.session_state.velocities[i]}")
+        st.write(f"Position: {st.session_state.coordinates[0]}")
+        st.write(f"Velocity: {st.session_state.velocities[0]}")
         st.write(f"Quantum State: {st.session_state.quantum_state}")
         st.write(f"Entropy: {st.session_state.entropy:.3f}")
         st.write(f"Time Dilation: {st.session_state.time_dilation:.3f}")
@@ -159,8 +189,7 @@ def main():
     with col2:
         st.markdown("## Hyperdimensional Visualization")
         fig = update_visualization()
-        fig.data[0].on_click(on_click)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig)
 
     with col3:
         st.markdown("## Hyperdimensional Visualization")
@@ -168,22 +197,23 @@ def main():
         Welcome to Vers3Dynamics' cutting-edge Hyperdimensional Visualization tool. 
         This advanced simulator allows you to explore concepts from quantum mechanics and relativity across multiple dimensions.
 
-        Interaction Guide:
-        - Click on a particle to select it.
-        - Use the force buttons to manipulate the selected particle.
-        - Observe how forces affect particle behavior in different dimensions.
-        - Experiment with teleportation, dimensional rifts, and hyperjumps to see complex physics in action.
-
         Features:
         - Teleportation: Quantum tunneling and state superposition.
-        - Dimensional Shifting: Toggle between 3D and 4D views.
-        - Dimensional Rift: Non-linear transformations and quantum effects.
-        - Wormhole Creation: Connect distant points with time dilation.
-        - Hyperjump: Experience relativistic near-light-speed travel.
+        - Dimensional Shifting: Toggle between 3D and 4D views, observing how spatial properties change.
+        - Dimensional Rift: Non-linear transformations and quantum tunneling effects.
+        - Wormhole Creation: Connect distant points with gravitational time dilation.
+        - Hyperjump: Relativistic effects of near-light-speed travel.
 
-        As you interact, consider how manipulating objects across dimensions and leveraging quantum effects might revolutionize our understanding of physics and technology.
+        As you interact with the visualization, consider the implications of such technology. How might our understanding of physics, transportation, and reality itself change if we could manipulate objects across multiple dimensions and leverage quantum effects?
 
-        Remember, while based on current theoretical physics, many aspects remain speculative. Enjoy exploring the frontiers of interdimensional and quantum manipulation!
+        Theoretical Applications:
+        - Quantum computing leveraging multiple dimensions
+        - Energy harvesting from vacuum fluctuations
+        - Exploration of parallel universes
+        - Manipulation of spacetime for FTL communication
+        - Gravitational engineering for space exploration
+
+        Remember, while this is a simulation based on current theoretical physics, many aspects remain speculative. The future of interdimensional and quantum manipulation remains an exciting frontier of science.
         """)
 
     # Update simulation
