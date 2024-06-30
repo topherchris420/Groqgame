@@ -44,7 +44,7 @@ def main():
     col1, col2, col3 = st.columns([1, 2, 1])
 
     with col1:
-        st.markdown("## Control Panel")
+        st.markdown("## Control Panel: Press to Begin")
         st.button("Teleport")
         st.button("Toggle Dimensions")
         st.button("Open Dimensional Rift")
