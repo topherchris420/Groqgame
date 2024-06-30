@@ -1,12 +1,80 @@
 import streamlit as st
-import random
+import plotly.graph_objects as go
 import numpy as np
+from scipy.spatial.transform import Rotation
 
-def generate_coordinates():
-    return [round(random.uniform(-1000, 1000), 2) for _ in range(3)]
+# Initialize session state
+if 'coordinates' not in st.session_state:
+    st.session_state.coordinates = np.random.uniform(-5, 5, (10, 4))
+if 'dimension' not in st.session_state:
+    st.session_state.dimension = 3
+if 'quantum_state' not in st.session_state:
+    st.session_state.quantum_state = np.random.random(3)
+if 'entropy' not in st.session_state:
+    st.session_state.entropy = np.random.random()
 
-def generate_quantum_state():
-    return [round(random.random(), 6) for _ in range(3)]
+def rotate_4d(coords, angle, axis1, axis2):
+    rotation_matrix = np.eye(4)
+    rotation_matrix[axis1, axis1] = np.cos(angle)
+    rotation_matrix[axis1, axis2] = -np.sin(angle)
+    rotation_matrix[axis2, axis1] = np.sin(angle)
+    rotation_matrix[axis2, axis2] = np.cos(angle)
+    return np.dot(coords, rotation_matrix.T)
+
+def teleport():
+    st.session_state.coordinates = np.random.uniform(-5, 5, (10, 4))
+    st.session_state.quantum_state = np.random.random(3)
+    st.session_state.entropy = np.random.random()
+
+def toggle_dimensions():
+    st.session_state.dimension = 4 if st.session_state.dimension == 3 else 3
+
+def open_dimensional_rift():
+    # Simulate a rift by applying a non-linear transformation
+    st.session_state.coordinates = np.sin(st.session_state.coordinates)
+
+def create_wormhole():
+    # Simulate a wormhole by "connecting" distant points
+    if len(st.session_state.coordinates) > 1:
+        st.session_state.coordinates[0] = st.session_state.coordinates[-1]
+
+def hyperjump():
+    # Extreme teleportation
+    st.session_state.coordinates = np.random.uniform(-10, 10, (10, 4))
+
+def update_visualization():
+    fig = go.Figure()
+
+    # Project 4D to 3D (simple orthographic projection)
+    coords_3d = st.session_state.coordinates[:, :3]
+
+    # Color based on 4th dimension
+    colors = st.session_state.coordinates[:, 3]
+
+    fig.add_trace(go.Scatter3d(
+        x=coords_3d[:, 0],
+        y=coords_3d[:, 1],
+        z=coords_3d[:, 2],
+        mode='markers',
+        marker=dict(
+            size=10,
+            color=colors,
+            colorscale='Viridis',
+            opacity=0.8
+        )
+    ))
+
+    fig.update_layout(
+        scene=dict(
+            xaxis_title='X',
+            yaxis_title='Y',
+            zaxis_title='Z'
+        ),
+        width=700,
+        margin=dict(r=20, b=10, l=10, t=10)
+    )
+
+    return fig
 
 def main():
     st.set_page_config(page_title="Vers3Dynamics", layout="wide")
@@ -34,26 +102,27 @@ def main():
 
     with col1:
         st.markdown("## Control Panel")
-        st.button("Teleport")
-        st.button("Toggle Dimensions")
-        st.button("Open Dimensional Rift")
-        st.button("Create Wormhole")
-        st.button("Initiate Hyperjump")
+        if st.button("Teleport"):
+            teleport()
+        if st.button("Toggle Dimensions"):
+            toggle_dimensions()
+        if st.button("Open Dimensional Rift"):
+            open_dimensional_rift()
+        if st.button("Create Wormhole"):
+            create_wormhole()
+        if st.button("Initiate Hyperjump"):
+            hyperjump()
 
-        st.markdown("### Current Dimension: 3D")
+        st.markdown(f"### Current Dimension: {st.session_state.dimension}D")
         st.markdown("### Object Properties")
-        coordinates = generate_coordinates()
-        st.write(f"Position: X: {coordinates[0]}, Y: {coordinates[1]}, Z: {coordinates[2]}")
-        
-        quantum_state = generate_quantum_state()
-        st.write(f"Quantum State: {quantum_state[0]} + {quantum_state[1]}i + {quantum_state[2]}j")
-        
-        st.write(f"Entropy: {round(random.random(), 3)}")
+        st.write(f"Position: {st.session_state.coordinates[0]}")
+        st.write(f"Quantum State: {st.session_state.quantum_state}")
+        st.write(f"Entropy: {st.session_state.entropy:.3f}")
 
     with col2:
         st.markdown("## Hyperdimensional Visualization")
-        # Placeholder for visualization
-        st.image("https://via.placeholder.com/400x300.png?text=Visualization+Placeholder", use_column_width=True)
+        fig = update_visualization()
+        st.plotly_chart(fig)
 
     with col3:
         st.markdown("## Hyperdimensional Visualization")
@@ -63,7 +132,7 @@ def main():
 
         Features:
         - Teleportation: Instantly move the object to random locations within the visualization space.
-        - Dimensional Shifting: Toggle between dimensions, observing how spatial properties change.
+        - Dimensional Shifting: Toggle between 3D and 4D views, observing how spatial properties change.
         - Quantum Field: Visualize the underlying quantum fabric that enables teleportation.
         - Dimensional Rift: Open a tear in spacetime, potentially connecting to parallel universes.
         - Wormhole Creation: Generate shortcuts through spacetime for rapid transit.
