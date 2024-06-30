@@ -50,8 +50,9 @@ def main():
         st.button("Open Dimensional Rift")
         st.button("Create Wormhole")
         st.button("Initiate Hyperjump")
-
-        st.markdown('<a href="https://Vers3Dynamics.io/" style="text-decoration:none; color: #ADD8E6;"><h2>Vers3Dynamics</h2></a>'")
+        
+        st.markdown('<a href="https://Vers3Dynamics.io/" style="text-decoration:none; color: #ADD8E6;"><h2>Vers3Dynamics</h2></a>', 
+    unsafe_allow_html=True)
         st.markdown("### Object Properties")
         
         coordinates = generate_coordinates()
