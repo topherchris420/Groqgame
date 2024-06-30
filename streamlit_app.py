@@ -9,7 +9,7 @@ def generate_quantum_state():
     return [round(random.random(), 6) for _ in range(3)]
 
 def main():
-    st.set_page_config(page_title="Vers3Dynamics", layout="wide")
+    st.set_page_config(page_icon="🚀", page_title="Vers3Dynamics", layout="wide")
 
     # Custom CSS for green text on black background
     st.markdown("""
@@ -40,7 +40,7 @@ def main():
         st.button("Create Wormhole")
         st.button("Initiate Hyperjump")
 
-        st.markdown("### Current Dimension: 3D")
+        st.markdown("### Vers3Dynamics.io")
         st.markdown("### Object Properties")
         coordinates = generate_coordinates()
         st.write(f"Position: X: {coordinates[0]}, Y: {coordinates[1]}, Z: {coordinates[2]}")
@@ -58,7 +58,7 @@ def main():
     with col3:
         st.markdown(":rainbow[**Vers3Dynamics**]")
         st.write("""
-        Welcome to Vers3Dynamics' cutting-edge Hyperdimensional Visualization tool. 
+        Welcome to Vers3Dynamics' hyperdimensional visualization tool. 
         This advanced simulator allows you to explore the concept of teleportation across multiple dimensions,
         reimagining location as a dynamic variable in object properties.
 
