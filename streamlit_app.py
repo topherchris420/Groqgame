@@ -3,21 +3,11 @@ import random
 import numpy as np
 
 def generate_coordinates():
-    """
-    Generate a list of 3 random coordinates within the range of -1000 to 1000.
-    
-    Returns:
-        List[float]: A list containing 3 coordinate values.
-    """
+    """Generate 3 random coordinates within the range of -1000 to 1000."""
     return [round(random.uniform(-1000, 1000), 2) for _ in range(3)]
 
 def generate_quantum_state():
-    """
-    Generate a list of 3 random quantum state values between 0 and 1.
-    
-    Returns:
-        List[float]: A list containing 3 quantum state values.
-    """
+    """Generate 3 random quantum state values between 0 and 1."""
     return [round(random.random(), 6) for _ in range(3)]
 
 def main():
@@ -45,14 +35,13 @@ def main():
 
     with col1:
         st.markdown("## Control Panel: Press to Begin")
-        st.button("Teleport")
-        st.button("Toggle Dimensions")
-        st.button("Open Dimensional Rift")
-        st.button("Create Wormhole")
-        st.button("Initiate Hyperjump")
+        buttons = ["Teleport", "Toggle Dimensions", "Open Dimensional Rift", 
+                   "Create Wormhole", "Initiate Hyperjump"]
+        for button in buttons:
+            st.button(button)
         
         st.markdown('<a href="https://vers3dynamics.tiiny.site/" style="text-decoration:none; color: #ADD8E6;"><h2>Vers3Dynamics</h2></a>', 
-    unsafe_allow_html=True)
+                    unsafe_allow_html=True)
         st.markdown("### Object Properties")
         
         coordinates = generate_coordinates()
@@ -71,18 +60,18 @@ def main():
         st.markdown(":rainbow[**Vers3Dynamics.io**]")
         st.write("""
         Welcome to Vers3Dynamics' hyperdimensional visualization tool. 
-        This advanced simulator allows you to explore the concept of teleportation across multiple dimensions,
+        This advanced simulator explores teleportation across multiple dimensions,
         reimagining location as a dynamic variable in object properties.
 
         Features:
-        - Teleportation: Instantly move the object to random locations within the visualization space.
-        - Dimensional Shifting: Toggle between dimensions, observing how spatial properties change.
-        - Quantum Field: Visualize the underlying quantum fabric that enables teleportation.
-        - Dimensional Rift: Open a tear in spacetime, potentially connecting to parallel universes.
-        - Wormhole Creation: Generate shortcuts through spacetime for rapid transit.
-        - Hyperjump: Perform extreme teleportation across vast distances and potentially multiple dimensions.
+        - Teleportation: Instantly move objects to random locations
+        - Dimensional Shifting: Toggle between dimensions
+        - Quantum Field: Visualize the underlying quantum fabric
+        - Dimensional Rift: Open a tear in spacetime
+        - Wormhole Creation: Generate shortcuts through spacetime
+        - Hyperjump: Extreme teleportation across vast distances
 
-        As you interact with the visualization, consider the implications of such technology. How might our understanding of physics, transportation, and reality itself change if we could manipulate objects across multiple dimensions?
+        Consider the implications of such technology on physics, transportation, and our understanding of reality.
 
         Theoretical Applications:
         - Instantaneous global or interplanetary travel
@@ -91,7 +80,7 @@ def main():
         - Exploration of parallel universes
         - Manipulation of matter at a fundamental level
 
-        Remember, while this is a simulation, the concepts explored here are at the forefront of theoretical physics. The future of interdimensional manipulation remains an exciting frontier of science.
+        While this is a simulation, these concepts represent exciting frontiers in theoretical physics.
         """)
 
 if __name__ == "__main__":
