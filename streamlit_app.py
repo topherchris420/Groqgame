@@ -53,7 +53,7 @@ def main():
     with col2:
         st.markdown("## Hyperdimensional Visualization")
         # Placeholder for visualization
-        st.image("https://via.placeholder.com/400x300.png?text=Visualization+Placeholder", use_column_width=True)
+        st.image("2icyfq6plns61_1.jpg", use_column_width=True)
 
     with col3:
         st.markdown("## Hyperdimensional Visualization")
