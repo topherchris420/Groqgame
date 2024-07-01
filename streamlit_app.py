@@ -1,39 +1,14 @@
 import streamlit as st
 import random
 import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
-@st.cache_data
 def generate_coordinates():
     """Generate 3 random coordinates within the range of -1000 to 1000."""
     return [round(random.uniform(-1000, 1000), 2) for _ in range(3)]
 
-@st.cache_data
 def generate_quantum_state():
     """Generate 3 random quantum state values between 0 and 1."""
     return [round(random.random(), 6) for _ in range(3)]
-
-def create_3d_visualization(coordinates):
-    try:
-        fig = plt.figure(figsize=(8, 8))
-        ax = fig.add_subplot(111, projection='3d')
-        ax.scatter(coordinates[0], coordinates[1], coordinates[2], c='green', s=100)
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel('Z')
-        ax.set_xlim(-1000, 1000)
-        ax.set_ylim(-1000, 1000)
-        ax.set_zlim(-1000, 1000)
-        return fig
-    except Exception as e:
-        st.error(f"Error creating visualization: {e}")
-        return None
-
-def update_properties():
-    st.session_state.coordinates = generate_coordinates()
-    st.session_state.quantum_state = generate_quantum_state()
-    st.session_state.entropy = round(random.random(), 3)
 
 def main():
     st.set_page_config(page_icon="🚀", page_title="Vers3Dynamics", layout="wide")
@@ -56,34 +31,30 @@ def main():
     </style>
     """, unsafe_allow_html=True)
 
-    if 'coordinates' not in st.session_state:
-        st.session_state.coordinates = generate_coordinates()
-        st.session_state.quantum_state = generate_quantum_state()
-        st.session_state.entropy = round(random.random(), 3)
-
     col1, col2, col3 = st.columns([1, 2, 1])
 
     with col1:
-        st.markdown("## Control Panel")
+        st.markdown("## Control Panel: Press to Begin")
         buttons = ["Teleport", "Toggle Dimensions", "Open Dimensional Rift", 
                    "Create Wormhole", "Initiate Hyperjump"]
         for button in buttons:
-            if st.button(button):
-                update_properties()
+            st.button(button)
         
         st.markdown('<a href="https://vers3dynamics.tiiny.site/" style="text-decoration:none; color: #ADD8E6;"><h2>Vers3Dynamics</h2></a>', 
                     unsafe_allow_html=True)
         st.markdown("### Object Properties")
         
-        st.write(f"Position: X: {st.session_state.coordinates[0]}, Y: {st.session_state.coordinates[1]}, Z: {st.session_state.coordinates[2]}")
-        st.write(f"Quantum State: {st.session_state.quantum_state[0]} + {st.session_state.quantum_state[1]}i + {st.session_state.quantum_state[2]}j")
-        st.write(f"Entropy: {st.session_state.entropy}")
+        coordinates = generate_coordinates()
+        st.write(f"Position: X: {coordinates[0]}, Y: {coordinates[1]}, Z: {coordinates[2]}")
+        
+        quantum_state = generate_quantum_state()
+        st.write(f"Quantum State: {quantum_state[0]} + {quantum_state[1]}i + {quantum_state[2]}j")
+        
+        st.write(f"Entropy: {round(random.random(), 3)}")
 
     with col2:
         st.markdown("## Hyperdimensional Visualization")
-        fig = create_3d_visualization(st.session_state.coordinates)
-        if fig:
-            st.pyplot(fig)
+        st.image("2icyfq6plns61_1.jpg", use_column_width=True)
 
     with col3:
         st.markdown(":rainbow[**Vers3Dynamics.io**]")
